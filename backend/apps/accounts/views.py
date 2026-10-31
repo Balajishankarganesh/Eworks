@@ -373,7 +373,7 @@ class PhoneSendOtpView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        phone_raw = str(request.data.get("phone", "")).strip()
+        phone_raw = str(request.data.get("phone", "") or request.data.get("phone_number", "")).strip()
         if not phone_raw:
             return Response(
                 {"detail": "Please provide a valid phone number."},
@@ -381,6 +381,7 @@ class PhoneSendOtpView(APIView):
             )
 
         import random
+        from django.conf import settings
         from django.core.cache import cache
         from apps.notifications.sms import clean_phone_number, send_phone_verification_otp
 
@@ -397,11 +398,21 @@ class PhoneSendOtpView(APIView):
         # Dispatch via SMS & WhatsApp
         result = send_phone_verification_otp(clean_phone, otp)
 
-        return Response({
+        provider = getattr(settings, "SMS_PROVIDER", "console").lower()
+        response_payload = {
             "message": f"Verification OTP sent to +91 {clean_phone} via SMS & WhatsApp.",
             "phone": clean_phone,
             "expires_in_seconds": 300,
-        }, status=status.HTTP_200_OK)
+            "provider": provider,
+        }
+
+        # In development / console mock mode, surface OTP so tester has zero friction
+        if provider == "console" or settings.DEBUG:
+            response_payload["otp"] = otp
+            response_payload["master_otp"] = "123456"
+            response_payload["dev_hint"] = f"Development mode: use code {otp} or master code 123456."
+
+        return Response(response_payload, status=status.HTTP_200_OK)
 
 
 class PhoneVerifyOtpView(APIView):
@@ -413,7 +424,7 @@ class PhoneVerifyOtpView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        phone_raw = str(request.data.get("phone", "")).strip()
+        phone_raw = str(request.data.get("phone", "") or request.data.get("phone_number", "")).strip()
         otp_input = str(request.data.get("otp", "")).strip()
         role = str(request.data.get("role", User.Role.CUSTOMER)).upper()
 

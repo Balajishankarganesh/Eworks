@@ -27,22 +27,27 @@ function LoginForm() {
   const [authMethod, setAuthMethod] = useState<"PASSWORD" | "PHONE_OTP">("PASSWORD");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [otpSent, setOtpSent] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-  const handleSendPhoneOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone.trim()) {
+  const handleSendPhoneOtp = async (e?: React.FormEvent, overridePhone?: string) => {
+    if (e) e.preventDefault();
+    const phoneToUse = overridePhone || phone;
+    if (!phoneToUse.trim()) {
       toast.error("Please enter your 10-digit mobile number.");
       return;
     }
     setError(null);
     setSendingOtp(true);
     try {
-      const { data } = await apiClient.post("/auth/phone/send-otp/", { phone: phone.trim() });
+      const { data } = await apiClient.post("/auth/phone/send-otp/", { phone: phoneToUse.trim() });
       toast.success(data.message || "OTP code sent via SMS & WhatsApp!");
       setOtpSent(true);
+      if (data.otp) {
+        setDevOtp(data.otp);
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.detail || "Could not send verification code.";
       setError(msg);
@@ -336,6 +341,25 @@ function LoginForm() {
                       </button>
                     </div>
 
+                    {/* Dev Mode Instant Auto-Fill Banner */}
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold flex items-center gap-1.5">
+                          <Sparkles className="w-4 h-4 text-amber-600" /> Dev Mock Active
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setOtp(devOtp || "123456")}
+                          className="px-2.5 py-1 rounded-lg bg-amber-200 hover:bg-amber-300 font-bold text-amber-950 transition text-[11px] shadow-sm"
+                        >
+                          Auto-fill: {devOtp || "123456"}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-amber-700 mt-1">
+                        Use master code <strong>123456</strong> or generated code <strong>{devOtp || "123456"}</strong>. (Add Fast2SMS key to .env for real phone SMS).
+                      </p>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider">
                         Enter 6-Digit OTP Code
@@ -376,7 +400,7 @@ function LoginForm() {
 
                     <button
                       type="button"
-                      onClick={handleSendPhoneOtp}
+                      onClick={() => handleSendPhoneOtp()}
                       disabled={sendingOtp}
                       className="w-full text-center text-xs text-orange-600 hover:underline font-semibold pt-1"
                     >
@@ -390,50 +414,77 @@ function LoginForm() {
             {/* Quick credentials helper for test / demo */}
             <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-600">
               <p className="font-bold text-slate-900 mb-2 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-orange-500" /> 1-Click Quick Fill Credentials:
+                <ShieldCheck className="w-4 h-4 text-orange-500" /> 1-Click Quick Fill ({authMethod === "PHONE_OTP" ? "Phone OTP" : "Email & Password"}):
               </p>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("customer@eworks.com");
-                    setPassword("Customer@123");
-                  }}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
-                >
-                  Customer (Priya)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("balajishankarganesh01@gmail.com");
-                    setPassword("Balaji@123");
-                  }}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
-                >
-                  Partner (Balaji)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("partner@eworks.com");
-                    setPassword("Partner@123");
-                  }}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
-                >
-                  Partner (Ramesh)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("admin@eworks.com");
-                    setPassword("Admin@123");
-                  }}
-                  className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
-                >
-                  Admin System
-                </button>
-              </div>
+              {authMethod === "PHONE_OTP" ? (
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhone("9876543210");
+                      setOtp("123456");
+                      handleSendPhoneOtp(undefined, "9876543210");
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
+                  >
+                    Customer (+91 9876543210)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhone("9300541897");
+                      setOtp("123456");
+                      handleSendPhoneOtp(undefined, "9300541897");
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
+                  >
+                    Partner Balaji (+91 9300541897)
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail("customer@eworks.com");
+                      setPassword("Customer@123");
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
+                  >
+                    Customer (Priya)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail("balajishankarganesh01@gmail.com");
+                      setPassword("Balaji@123");
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
+                  >
+                    Partner (Balaji)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail("partner@eworks.com");
+                      setPassword("Partner@123");
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
+                  >
+                    Partner (Ramesh)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail("admin@eworks.com");
+                      setPassword("Admin@123");
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold text-center transition shadow-sm"
+                  >
+                    Admin System
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Switch to Register */}

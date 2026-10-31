@@ -80,9 +80,8 @@ export default function CustomerAddressesPage() {
     try {
       setLoading(true);
       const { data } = await apiClient.get("/locations/addresses/");
-      if (Array.isArray(data)) {
-        setAddresses(data);
-      }
+      const items = Array.isArray(data) ? data : (data?.results || []);
+      setAddresses(items);
     } catch (e) {
       // Mock fallback for UI preview
       setAddresses([

@@ -36,9 +36,8 @@ export default function CustomerDashboardPage() {
     try {
       setLoading(true);
       const { data } = await apiClient.get("/bookings/my-bookings/");
-      if (Array.isArray(data)) {
-        setBookings(data);
-      }
+      const items = Array.isArray(data) ? data : (data?.results || []);
+      setBookings(items);
     } catch (e) {
       // Mock sample booking if backend empty or during preview
       setBookings([

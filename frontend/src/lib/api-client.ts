@@ -139,4 +139,13 @@ export function formatApiError(err: any): string {
   return "Validation failed. Please check your inputs.";
 }
 
+/**
+ * Normalizes DRF paginated responses ({ count, results: [...] }) or bare arrays ([...]).
+ */
+export function unwrapResults<T = any>(data: any): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
 export default apiClient;

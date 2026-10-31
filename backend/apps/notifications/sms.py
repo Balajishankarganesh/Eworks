@@ -43,23 +43,27 @@ class ConsoleProvider(BaseSMSProvider):
     """Logs OTP and SMS to application logs and terminal."""
 
     def send_sms(self, phone: str, message: str) -> dict:
-        logger.info(
+        banner = (
             "\n" + "=" * 60 + "\n"
             f"📱 [EWORKS SMS DISPATCH - CONSOLE MOCK]\n"
             f"To: {phone}\n"
             f"Message: {message}\n"
             + "=" * 60
         )
+        print(banner, flush=True)
+        logger.warning(banner)
         return {"success": True, "provider": "console", "phone": phone, "channel": "sms"}
 
     def send_whatsapp(self, phone: str, message: str) -> dict:
-        logger.info(
+        banner = (
             "\n" + "=" * 60 + "\n"
             f"💬 [EWORKS WHATSAPP DISPATCH - CONSOLE MOCK]\n"
             f"To: {phone}\n"
             f"Message: {message}\n"
             + "=" * 60
         )
+        print(banner, flush=True)
+        logger.warning(banner)
         return {"success": True, "provider": "console", "phone": phone, "channel": "whatsapp"}
 
 
@@ -237,3 +241,4 @@ def send_phone_verification_otp(phone: str, otp: str) -> dict:
     sms_res = send_sms_notification(phone, msg)
     wa_res = send_whatsapp_notification(phone, msg)
     return {"sms": sms_res, "whatsapp": wa_res, "otp": otp}
+

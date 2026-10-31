@@ -115,8 +115,9 @@ export default function ServicesPage() {
       try {
         setLoading(true);
         const { data } = await apiClient.get("/services/categories/");
-        if (data && Array.isArray(data) && data.length > 0) {
-          setCategories(data);
+        const items = Array.isArray(data) ? data : (data?.results || []);
+        if (items.length > 0) {
+          setCategories(items);
         }
       } catch (err) {
         // Fallback to default categories

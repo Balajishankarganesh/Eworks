@@ -183,9 +183,10 @@ export default function ServiceDetailPage() {
       if (isAuthenticated && user?.role === "CUSTOMER") {
         try {
           const { data: addrData } = await apiClient.get("/locations/addresses/");
-          if (Array.isArray(addrData) && addrData.length > 0) {
-            setSavedAddresses(addrData);
-            const defaultAddr = addrData.find((a: any) => a.is_default) || addrData[0];
+          const addrs = Array.isArray(addrData) ? addrData : (addrData?.results || []);
+          if (addrs.length > 0) {
+            setSavedAddresses(addrs);
+            const defaultAddr = addrs.find((a: any) => a.is_default) || addrs[0];
             setSelectedAddressId(defaultAddr.id);
             setAddressText(`${defaultAddr.address_line_1}, ${defaultAddr.city} - ${defaultAddr.pincode}`);
           }

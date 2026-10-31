@@ -148,7 +148,8 @@ export default function PartnerDashboardPage() {
       // Offers
       try {
         const { data: offersData } = await apiClient.get("/bookings/partner/offers/");
-        if (Array.isArray(offersData)) setOffers(offersData);
+        const offerItems = Array.isArray(offersData) ? offersData : (offersData?.results || []);
+        setOffers(offerItems);
       } catch (e) {
         // Fallback demo offer
         setOffers([
@@ -159,7 +160,7 @@ export default function PartnerDashboardPage() {
             problem_description: "Ceiling fan sparking & MCB trip in 2nd bedroom",
             customer_address: "Flat 4B, Green Meadows, Anna Nagar, Chennai",
             quoted_price: 349.0,
-            partner_payout: 296.65,
+            partner_payout: 349.0,
             distance_km: 1.8,
             expires_at: new Date(Date.now() + 45000).toISOString(),
             batch_number: 1,
@@ -170,9 +171,8 @@ export default function PartnerDashboardPage() {
       // Active / Confirmed Jobs
       try {
         const { data: jobsData } = await apiClient.get("/bookings/partner/jobs/");
-        if (Array.isArray(jobsData)) {
-          setActiveJobs(jobsData.filter((j: any) => ["MATCHED", "PARTNER_EN_ROUTE", "IN_PROGRESS"].includes(j.status)));
-        }
+        const jobItems = Array.isArray(jobsData) ? jobsData : (jobsData?.results || []);
+        setActiveJobs(jobItems.filter((j: any) => ["MATCHED", "PARTNER_EN_ROUTE", "IN_PROGRESS"].includes(j.status)));
       } catch (e) {
         // Demo active jobs
         setActiveJobs([]);
@@ -181,9 +181,10 @@ export default function PartnerDashboardPage() {
       // Availability slots
       try {
         const { data: availData } = await apiClient.get("/locations/availability/");
-        if (Array.isArray(availData) && availData.length > 0) {
+        const availItems = Array.isArray(availData) ? availData : (availData?.results || []);
+        if (availItems.length > 0) {
           const merged = DAY_NAMES.map((name, i) => {
-            const found = availData.find((a: any) => a.day_of_week === i);
+            const found = availItems.find((a: any) => a.day_of_week === i);
             return (
               found || {
                 day_of_week: i,
