@@ -1,0 +1,61 @@
+# ── Web framework ────────────────────────────────────────────────────────────
+Django==5.0.7
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.4.0
+
+# ── ASGI / WebSockets ────────────────────────────────────────────────────────
+daphne==4.1.2
+channels==4.1.0
+channels-redis==4.2.0
+
+# ── Celery ───────────────────────────────────────────────────────────────────
+celery==5.4.0
+django-celery-beat==2.7.0
+django-celery-results==2.5.1
+redis==5.0.8
+flower==2.0.1
+
+# ── Database ─────────────────────────────────────────────────────────────────
+psycopg2-binary==2.9.9
+django-environ==0.11.2
+
+# ── Geographic / PostGIS ─────────────────────────────────────────────────────
+# GDAL and GEOS are provided by the system packages in the Dockerfile.
+# No additional pip package needed for django.contrib.gis.
+
+# ── Auth / Security ──────────────────────────────────────────────────────────
+django-allauth==64.2.1
+google-auth>=2.20.0
+requests>=2.31.0
+djangorestframework-camel-case==1.4.2
+cryptography==43.0.1
+argon2-cffi==23.1.0
+
+# ── File / Storage ───────────────────────────────────────────────────────────
+Pillow==10.4.0
+django-storages==1.14.4
+boto3==1.35.16
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+django-filter==24.3
+drf-spectacular==0.27.2
+django-extensions==3.2.3
+python-decouple==3.8
+shortuuid==1.0.13
+phonenumbers==8.13.45
+django-phonenumber-field==8.0.0
+
+# ── Testing ──────────────────────────────────────────────────────────────────
+pytest==8.3.3
+pytest-django==4.9.0
+pytest-asyncio==0.24.0
+factory-boy==3.3.1
+faker==30.3.0
+
+# ── Linting ──────────────────────────────────────────────────────────────────
+black==24.8.0
+ruff==0.6.8
+mypy==1.11.2
+django-stubs==5.1.0
+djangorestframework-stubs==3.15.1
