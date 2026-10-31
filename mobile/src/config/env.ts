@@ -10,12 +10,12 @@ import { Platform } from "react-native";
  */
 // Detected local Wi-Fi IP and active cloud tunnel for external device reachability:
 const LAN_IP = "192.168.1.42";
-const TUNNEL_URL = "https://crazy-ways-exist.loca.lt/api/v1";
+const TUNNEL_URL = "https://8f71a9aaf014c1.lhr.life/api/v1";
 
 export const ENV = {
   // Defaults to public tunnel so physical devices connect instantly without LAN/Firewall limits:
   DEFAULT_API_BASE_URL: TUNNEL_URL,
-  DEFAULT_WS_BASE_URL: "wss://crazy-ways-exist.loca.lt/ws",
+  DEFAULT_WS_BASE_URL: "wss://8f71a9aaf014c1.lhr.life/ws",
   LAN_API_BASE_URL: `http://${LAN_IP}:8000/api/v1`,
   APP_NAME: "Eworks",
   TAGLINE: "Hyperlocal Home Services",
