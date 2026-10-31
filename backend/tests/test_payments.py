@@ -24,20 +24,20 @@ class TestPricingBreakdown:
     def test_pricing_breakdown_correct(self):
         pricing = calculate_pricing_breakdown(Decimal("299.00"))
         assert pricing["service_price"] == 299.00
-        assert pricing["convenience_fee"] == 29.00
-        assert pricing["gst_amount"] > 0
-        assert pricing["total_amount"] > pricing["service_price"]
-        assert pricing["partner_payout"] < pricing["service_price"]
+        assert pricing["convenience_fee"] == 0.0
+        assert pricing["gst_amount"] == 0.0
+        assert pricing["total_amount"] == pricing["service_price"]
+        assert pricing["partner_payout"] == pricing["service_price"]
 
     def test_pricing_zero_amount(self):
         pricing = calculate_pricing_breakdown(Decimal("0"))
         assert pricing["service_price"] == 0.0
-        assert pricing["total_amount"] > 0  # Convenience + GST still apply
+        assert pricing["total_amount"] == 0.0
 
-    def test_partner_payout_is_85_percent(self):
+    def test_partner_payout_is_100_percent_free(self):
         pricing = calculate_pricing_breakdown(Decimal("1000.00"))
-        assert pricing["partner_payout"] == 850.00
-        assert pricing["platform_commission"] > 0
+        assert pricing["partner_payout"] == 1000.00
+        assert pricing["platform_commission"] == 0.0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

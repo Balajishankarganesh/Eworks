@@ -272,7 +272,7 @@ export default function PartnerJobExecutionPage() {
               {/* Customer & Location Card */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-600" /> Customer & Navigation
+                  <MapPin className="w-4 h-4 text-orange-500" /> Customer & Navigation
                 </h3>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
@@ -293,7 +293,7 @@ export default function PartnerJobExecutionPage() {
                     rel="noopener noreferrer"
                     className="w-full py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-2 border border-slate-200"
                   >
-                    <Navigation className="w-4 h-4 text-blue-600" />
+                    <Navigation className="w-4 h-4 text-orange-500" />
                     <span>Open in Google Maps</span>
                   </a>
                 )}
@@ -324,12 +324,15 @@ export default function PartnerJobExecutionPage() {
                   {booking.final_price && (
                     <div className="flex justify-between text-slate-500">
                       <span>Final Settled Payout</span>
-                      <span className="text-emerald-400 font-mono font-bold">₹{booking.final_price}</span>
+                      <span className="text-emerald-500 font-mono font-bold">₹{booking.final_price}</span>
                     </div>
                   )}
                   <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-sm font-bold text-slate-900">
-                    <span>Your Earnings</span>
-                    <span className="text-xl font-extrabold text-emerald-400 font-mono">
+                    <div>
+                      <span>Your Earnings</span>
+                      <p className="text-[10px] text-emerald-600 font-semibold">100% Direct Payout • 0% Commission</p>
+                    </div>
+                    <span className="text-xl font-extrabold text-emerald-600 font-mono">
                       ₹{booking.final_price || booking.quoted_price}
                     </span>
                   </div>

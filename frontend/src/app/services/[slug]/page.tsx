@@ -364,11 +364,11 @@ export default function ServiceDetailPage() {
 
             {/* How matching works alert */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-start gap-4 text-xs text-slate-500">
-              <HelpCircle className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
+              <HelpCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold text-slate-800 mb-1">How Rapido-Style Matching Works:</p>
                 <p>
-                  Once you tap Confirm, our real-time matching engine broadcasts your request to top-rated nearby partners within a 5 km radius. The first available partner who accepts is immediately dispatched to your doorstep.
+                  Once you tap Confirm, our real-time matching engine broadcasts your request to top-rated nearby partners within your district. The first available partner who accepts is immediately dispatched to your doorstep.
                 </p>
               </div>
             </div>
@@ -584,21 +584,21 @@ export default function ServiceDetailPage() {
 
 
                 {/* Price Breakdown */}
-                <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-500">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-600">
                     <span>Base Inspection Charge</span>
-                    <span className="text-white font-medium">₹{categoryInfo.base_price}</span>
+                    <span className="text-slate-900 font-bold">₹{categoryInfo.base_price}</span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>Taxes & Platform Safety Fee</span>
-                    <span className="text-white font-medium">₹29</span>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Platform Convenience Fee</span>
+                    <span className="text-emerald-600 font-bold">₹0 (100% Free)</span>
                   </div>
-                  <div className="border-t border-slate-300 pt-2 flex justify-between text-sm font-bold text-white">
-                    <span>Total Estimate</span>
-                    <span className="text-white">₹{Number(categoryInfo.base_price) + 29}</span>
+                  <div className="border-t border-slate-200 pt-2 flex justify-between text-sm font-bold text-slate-900">
+                    <span>Total Service Amount</span>
+                    <span className="text-orange-500 font-black">₹{categoryInfo.base_price}</span>
                   </div>
-                  <p className="text-[10px] text-slate-400 italic pt-1">
-                    * Pay online or cash after service completion. Transparent billing.
+                  <p className="text-[10px] text-slate-500 italic pt-1">
+                    * 100% Free Platform. Settle directly with the technician via Cash or UPI upon service completion.
                   </p>
                 </div>
 
