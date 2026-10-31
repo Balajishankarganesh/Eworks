@@ -11,6 +11,7 @@ export const apiClient = axios.create({
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
+    "bypass-tunnel-reminder": "true",
   },
 });
 
@@ -143,3 +144,4 @@ export function formatApiError(err: any): string {
   if (typeof data.error === "string") return data.error;
   return "Validation error. Please check your inputs.";
 }
+

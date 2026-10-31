@@ -98,3 +98,4 @@ export interface PartnerOffer {
   distance_km?: number;
   expires_at?: string;
 }
+

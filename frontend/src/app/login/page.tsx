@@ -124,7 +124,7 @@ function LoginForm() {
       }
     } catch (err: any) {
       const msg = !err?.response
-        ? "Backend API is offline: Cannot connect to http://localhost:8000. Please start the backend service."
+        ? "Backend API is not responding. Please check connection."
         : err?.response?.data?.detail ||
           err?.response?.data?.message ||
           "Invalid email or password. Please try again.";

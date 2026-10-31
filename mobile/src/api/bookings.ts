@@ -38,3 +38,4 @@ export const bookingsApi = {
     return data;
   },
 };
+

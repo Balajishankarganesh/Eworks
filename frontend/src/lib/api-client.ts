@@ -5,8 +5,23 @@
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+export function getRuntimeApiUrl(): string {
+  if (typeof window !== "undefined") {
+    // If running in browser and accessed through tunnel, LAN IP, or port 80/443 proxy:
+    if (
+      window.location.hostname !== "localhost" &&
+      window.location.hostname !== "127.0.0.1"
+    ) {
+      return `${window.location.origin}/api/v1`;
+    }
+    if (window.location.port === "80" || window.location.port === "443" || window.location.port === "") {
+      return `${window.location.origin}/api/v1`;
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+}
+
+const BASE_URL = getRuntimeApiUrl();
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -16,9 +31,10 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-// ── Request interceptor — attach JWT access token ───────────────────────────
+// ── Request interceptor — attach JWT access token & resolve dynamic baseURL ────
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    config.baseURL = getRuntimeApiUrl();
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("access_token");
       if (token && config.headers) {
@@ -85,7 +101,7 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post(`${BASE_URL}/auth/token/refresh/`, {
+        const { data } = await axios.post(`${getRuntimeApiUrl()}/auth/token/refresh/`, {
           refresh: refreshToken,
         });
 

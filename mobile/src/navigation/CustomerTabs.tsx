@@ -60,3 +60,4 @@ export const CustomerTabs: React.FC = () => {
     </Tab.Navigator>
   );
 };
+

@@ -11,6 +11,7 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [  # type: ignore[name-defined]  # 
 
 # Allow all hosts in development
 ALLOWED_HOSTS = ["*"]
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Disable HTTPS-only settings
 SECURE_SSL_REDIRECT = False

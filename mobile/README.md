@@ -78,3 +78,4 @@ To generate an installable `.apk` file for Android distribution without needing 
 ```bash
 npx eas-cli build -p android --profile preview
 ```
+

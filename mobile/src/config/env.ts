@@ -8,11 +8,15 @@ import { Platform } from "react-native";
  * - iOS Simulator: localhost maps to host machine
  * - Physical Phone: Use host machine's Wi-Fi LAN IP (e.g. 192.168.1.X) or ngrok/cloud URL
  */
-const DEFAULT_HOST = Platform.OS === "android" ? "10.0.2.2" : "localhost";
+// Detected local Wi-Fi IP and active cloud tunnel for external device reachability:
+const LAN_IP = "192.168.1.42";
+const TUNNEL_URL = "https://crazy-ways-exist.loca.lt/api/v1";
 
 export const ENV = {
-  DEFAULT_API_BASE_URL: `http://${DEFAULT_HOST}:8000/api/v1`,
-  DEFAULT_WS_BASE_URL: `ws://${DEFAULT_HOST}:8000/ws`,
+  // Defaults to public tunnel so physical devices connect instantly without LAN/Firewall limits:
+  DEFAULT_API_BASE_URL: TUNNEL_URL,
+  DEFAULT_WS_BASE_URL: "wss://crazy-ways-exist.loca.lt/ws",
+  LAN_API_BASE_URL: `http://${LAN_IP}:8000/api/v1`,
   APP_NAME: "Eworks",
   TAGLINE: "Hyperlocal Home Services",
   CURRENCY_SYMBOL: "₹",
@@ -41,3 +45,4 @@ export const DEMO_USERS = {
   masterOtp: "123456",
   masterJobOtp: "1234",
 };
+

@@ -71,3 +71,4 @@ export const PartnerTabs: React.FC = () => {
     </Tab.Navigator>
   );
 };
+
