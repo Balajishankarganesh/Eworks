@@ -84,6 +84,14 @@ def broadcast_booking_update(booking, extra_data: dict = None):
                 data={"booking_id": str(booking.id), "status": booking.status},
             )
 
+            # Automatically dispatch Start OTP via SMS & WhatsApp when Partner is assigned/en route
+            if booking.status in ["MATCHED", "PARTNER_EN_ROUTE"] and booking.job_start_otp:
+                try:
+                    from apps.notifications.sms import send_job_start_otp_sms
+                    send_job_start_otp_sms(booking)
+                except Exception as sms_err:
+                    logger.warning(f"SMS OTP dispatch failed: {sms_err}")
+
     except Exception as exc:
         logger.warning(f"Error in broadcast_booking_update for booking {getattr(booking, 'id', 'unknown')}: {exc}")
 

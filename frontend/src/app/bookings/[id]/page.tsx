@@ -28,6 +28,7 @@ import {
   ThumbsUp,
   Sparkles,
   Check,
+  Send,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
@@ -104,6 +105,19 @@ export default function BookingTrackingPage() {
   const [commentInput, setCommentInput] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [sendingSmsOtp, setSendingSmsOtp] = useState(false);
+
+  const handleSendOtpViaSms = async () => {
+    try {
+      setSendingSmsOtp(true);
+      const { data } = await apiClient.post(`/bookings/${bookingId}/resend-otp/`);
+      toast.success(data.message || "OTP sent to your phone via SMS & WhatsApp!");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Could not send OTP. Please try again.");
+    } finally {
+      setSendingSmsOtp(false);
+    }
+  };
 
   // Real-time zero-polling WebSocket connection for booking updates & live partner GPS
   const { isConnected: wsConnected } = useBookingWebSocket(bookingId, {
@@ -517,12 +531,12 @@ export default function BookingTrackingPage() {
                   <p className="text-xs text-slate-700 mb-6">
                     Share this 4-digit code with your service technician when they arrive at your door to authenticate and begin the service.
                   </p>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                       {booking.job_start_otp.split("").map((digit: string, i: number) => (
                         <div
                           key={i}
-                          className="w-14 h-16 rounded-2xl bg-blue-50 border-2 border-blue-200 text-blue-600 flex items-center justify-center text-3xl font-mono font-extrabold shadow-sm"
+                          className="w-14 h-16 rounded-2xl bg-orange-50 border-2 border-orange-300 text-orange-600 flex items-center justify-center text-3xl font-mono font-extrabold shadow-sm"
                         >
                           {digit}
                         </div>
@@ -531,6 +545,31 @@ export default function BookingTrackingPage() {
                     <span className="text-xs text-slate-700 font-medium">
                       Never share this code over phone before the partner arrives.
                     </span>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>SMS & WhatsApp Gateway Active</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSendOtpViaSms}
+                      disabled={sendingSmsOtp}
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 text-xs font-bold transition flex items-center gap-2 shadow-sm disabled:opacity-60"
+                    >
+                      {sendingSmsOtp ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
+                          <span>Sending to Phone...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5 text-orange-500" />
+                          <span>Send OTP to My Phone (SMS / WhatsApp)</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               )}

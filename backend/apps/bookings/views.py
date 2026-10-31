@@ -410,6 +410,40 @@ class BookingStartJobView(APIView):
         )
 
 
+class ResendStartOtpView(APIView):
+    """
+    POST /api/v1/bookings/<uuid:pk>/resend-otp/
+    Resends the 4-digit Job Start OTP via SMS & WhatsApp to the customer's phone.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        booking = get_object_or_404(Booking, pk=pk)
+        # Only customer or assigned partner can trigger resend
+        is_customer = request.user == booking.customer.user
+        is_partner = booking.partner and request.user == booking.partner.user
+        if not is_customer and not is_partner:
+            return Response(
+                {"detail": "You do not have permission to resend OTP for this booking."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if booking.status not in [Booking.Status.MATCHED, Booking.Status.PARTNER_EN_ROUTE]:
+            return Response(
+                {"detail": f"OTP resend not applicable for booking with status '{booking.status}'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from apps.notifications.sms import send_job_start_otp_sms
+        res = send_job_start_otp_sms(booking)
+        phone = booking.customer.user.phone or "registered phone"
+
+        return Response({
+            "message": f"Job Start OTP resent via SMS & WhatsApp to {phone}.",
+            "details": res,
+        })
+
+
 class BookingCompleteJobView(APIView):
     """
     POST /api/v1/bookings/<uuid:pk>/complete/

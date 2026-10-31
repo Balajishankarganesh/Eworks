@@ -265,6 +265,14 @@ MATCHING_RADIUS_KM = env.float("MATCHING_RADIUS_KM", default=10.0)
 PHONENUMBER_DB_FORMAT = "E164"
 PHONENUMBER_DEFAULT_REGION = "IN"
 
+# ── SMS & WhatsApp Gateway ────────────────────────────────────────────────────
+SMS_PROVIDER = env("SMS_PROVIDER", default="console")
+FAST2SMS_API_KEY = env("FAST2SMS_API_KEY", default="")
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="")
+TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="")
+TWILIO_WHATSAPP_FROM = env("TWILIO_WHATSAPP_FROM", default="whatsapp:+14155238886")
+
 # ── Logging ───────────────────────────────────────────────────────────────────
 (BASE_DIR / "logs").mkdir(parents=True, exist_ok=True)
 LOGGING = {

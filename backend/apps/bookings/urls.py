@@ -18,6 +18,8 @@ urlpatterns = [
     # Partner booking lifecycle & actions
     path("<uuid:pk>/en-route/", views.PartnerEnRouteView.as_view(), name="partner-en-route"),
     path("<uuid:pk>/start-job/", views.BookingStartJobView.as_view(), name="booking-start-job"),
+    path("<uuid:pk>/verify-otp/", views.BookingStartJobView.as_view(), name="booking-verify-otp"),
+    path("<uuid:pk>/resend-otp/", views.ResendStartOtpView.as_view(), name="booking-resend-otp"),
     path("<uuid:pk>/complete/", views.BookingCompleteJobView.as_view(), name="booking-complete-job"),
 
     # Partner bookings & offers
