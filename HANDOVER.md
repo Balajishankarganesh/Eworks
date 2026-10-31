@@ -136,6 +136,12 @@ This automatically sets up categories, test customers, verified service partners
   - District hubs: Chennai, Coimbatore, Madurai, Tiruchirappalli, Salem, Tiruppur, Erode, Tirunelveli, Vellore, Thanjavur, Thoothukudi, Dindigul, Kanyakumari, etc.
   - Endpoint `GET /api/v1/locations/districts/` provides the list of all districts.
 
+### E. 100% Free Platform Model (Current Live Phase)
+- **Zero Commission for Partners**: Service partners keep **100% of their earnings** (`COMMISSION_PCT = 0.0%`).
+- **Zero Platform Fees for Customers**: Customers pay **₹0 convenience or platform charges** (`CONVENIENCE_FEE = 0.00`).
+- **Direct Settlement**: Customers settle directly with the technician upon job completion via Cash in hand or the technician's direct UPI QR code.
+- **Future Roadmap**: Payment gateway (Razorpay/Cashfree) integration, platform commissions, and escrow wallets are deferred to Phase 2.
+
 ---
 
 ## 6. Repository Layout
@@ -173,14 +179,14 @@ Eworks/
 
 ## 7. Recommended Next Steps for the Tech Team
 
-1. **Payment Gateway Integration**:
-   - Wire up **Razorpay** or **Cashfree** in `backend/apps/payments/` for UPI, Netbanking, and Cards.
-   - Implement webhooks for payment capture and partner instant payouts.
-2. **SMS & WhatsApp Gateway**:
-   - Replace console OTP logging with **Twilio**, **Fast2SMS**, or **Gupshup** for live customer verification.
-3. **Mobile Application (Optional/Recommended)**:
-   - Build customer and partner mobile apps using React Native or Flutter, connecting to the existing `/api/v1/` endpoints and `/ws/` WebSockets.
-4. **Production Deployment**:
+1. **Production Cloud Deployment**:
    - Deploy on AWS ECS / DigitalOcean Droplet / Kubernetes using `docker-compose.prod.yml`.
    - Setup HTTPS certificates via Let's Encrypt / Certbot in Nginx.
+2. **SMS & WhatsApp Gateway**:
+   - Replace console OTP logging with **Twilio**, **Fast2SMS**, or **Gupshup** for live customer verification.
+3. **Mobile Application (React Native / Flutter)**:
+   - Build customer and partner mobile apps using React Native or Flutter, connecting to the existing `/api/v1/` endpoints and `/ws/` WebSockets.
+4. **Future Roadmap — Payment Gateway & Monetization**:
+   - The platform is currently **100% Free** (Zero commission, Direct Cash/UPI settlement).
+   - In future phases, wire up **Razorpay** or **Cashfree** in `backend/apps/payments/` if introducing platform commissions, instant in-app wallet payouts, or subscription plans.
 

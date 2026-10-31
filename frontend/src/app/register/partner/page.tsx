@@ -172,11 +172,14 @@ export default function PartnerRegisterPage() {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold mb-2">
+                    <span>100% Free • 0% Commission • Keep 100% of What You Earn</span>
+                  </div>
                   <h2 className="text-2xl font-bold text-slate-900 font-heading">
                     Partner Registration
                   </h2>
                   <p className="text-xs text-slate-500 mt-1">
-                    Receive direct bookings in your neighborhood with real-time matching
+                    Receive direct bookings in your neighborhood with zero platform cuts
                   </p>
                 </div>
 

@@ -541,18 +541,18 @@ export default function BookingTrackingPage() {
                   <div className="flex items-center justify-between pb-4 border-b border-slate-200">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        isPaid ? "bg-emerald-500/20 text-emerald-600" : "bg-blue-100 text-blue-800"
+                        isPaid ? "bg-emerald-500/20 text-emerald-600" : "bg-orange-100 text-orange-600"
                       }`}>
                         {isPaid ? <CheckCircle2 className="w-6 h-6" /> : <CreditCard className="w-6 h-6" />}
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-slate-900">
-                          {isPaid ? "Payment Completed & Verified" : "Payment Due for Completed Service"}
+                          {isPaid ? "Payment Completed & Verified" : "Direct Service Settlement (100% Free Platform)"}
                         </h3>
                         <p className="text-xs text-slate-500">
                           {isPaid
-                            ? `Settled via ${paymentInfo?.payment?.method || "Online"} (Txn: ${paymentInfo?.payment?.gateway_transaction_id || "TXN-XXXX"})`
-                            : "Technician marked the job completed. Settle dues online or via Cash."}
+                            ? `Settled via ${paymentInfo?.payment?.method || "Direct Cash/UPI"} (Direct to Pro • ₹0 Platform Fee)`
+                            : "Technician marked the job completed. Settle dues directly to the Pro via Cash or UPI (₹0 Commission)."}
                         </p>
                       </div>
                     </div>
@@ -573,27 +573,27 @@ export default function BookingTrackingPage() {
                       {/* Price summary pill */}
                       <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-slate-500">Total Billed Amount</p>
-                          <p className="text-2xl font-black text-white font-mono">
+                          <p className="text-xs text-slate-500">Direct Service Amount (100% to Pro)</p>
+                          <p className="text-2xl font-black text-slate-900 font-mono">
                             ₹{paymentInfo?.pricing?.total_amount || booking.final_price || booking.quoted_price}
                           </p>
                         </div>
-                        <span className="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-semibold">
-                          Includes ₹29 Platform Fee + 18% GST
+                        <span className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
+                          100% Free • ₹0 Platform Fee • 0% Commission
                         </span>
                       </div>
 
                       {/* Payment Method Selector */}
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
-                          Select Payment Mode
+                          Select Direct Payment Mode
                         </p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {[
-                            { id: "UPI", label: "UPI / QR", desc: "GPay, PhonePe, Paytm" },
-                            { id: "CARD", label: "Cards", desc: "Visa, Mastercard" },
-                            { id: "NETBANKING", label: "NetBanking", desc: "All Indian Banks" },
-                            { id: "CASH", label: "Cash", desc: "Pay directly to Pro" },
+                            { id: "CASH", label: "Cash on Service", desc: "Pay directly to Pro in hand" },
+                            { id: "UPI", label: "Direct UPI / QR", desc: "Scan Pro's GPay, PhonePe, Paytm" },
+                            { id: "CARD", label: "Cards", desc: "Direct POS / Link (Future)" },
+                            { id: "NETBANKING", label: "NetBanking", desc: "Direct Transfer (Future)" },
                           ].map((m) => (
                             <button
                               key={m.id}
@@ -601,11 +601,13 @@ export default function BookingTrackingPage() {
                               onClick={() => setSelectedMethod(m.id)}
                               className={`p-3 rounded-2xl border text-left transition ${
                                 selectedMethod === m.id
-                                  ? "bg-blue-600 border-blue-600 text-white shadow-sm font-semibold"
+                                  ? "bg-slate-900 border-orange-500 shadow-md font-semibold ring-2 ring-orange-500/30"
                                   : "bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300"
                               }`}
                             >
-                              <p className="text-xs font-bold text-white">{m.label}</p>
+                              <p className={`text-xs font-bold ${selectedMethod === m.id ? "text-orange-400" : "text-slate-800"}`}>
+                                {m.label}
+                              </p>
                               <p className="text-[10px] text-slate-500 mt-0.5 truncate">{m.desc}</p>
                             </button>
                           ))}
@@ -616,16 +618,16 @@ export default function BookingTrackingPage() {
                       <button
                         onClick={handlePayNow}
                         disabled={processingPayment}
-                        className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold font-black text-sm shadow-xl shadow-blue-500/10 transition flex items-center justify-center gap-2"
+                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-black text-sm shadow-xl shadow-orange-500/20 transition flex items-center justify-center gap-2"
                       >
                         {processingPayment ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Authenticating & Processing Payment...</span>
+                            <span>Confirming Direct Settlement...</span>
                           </>
                         ) : (
                           <>
-                            <span>Pay ₹{paymentInfo?.pricing?.total_amount || booking.final_price || booking.quoted_price} Now</span>
+                            <span>Confirm Direct Payment of ₹{paymentInfo?.pricing?.total_amount || booking.final_price || booking.quoted_price} to Pro</span>
                             <ChevronRight className="w-4 h-4 stroke-[3]" />
                           </>
                         )}
@@ -636,8 +638,8 @@ export default function BookingTrackingPage() {
                       <div className="flex items-center gap-3">
                         <Check className="w-5 h-5 text-emerald-600" />
                         <div>
-                          <p className="text-xs font-bold text-emerald-600">Paid in Full</p>
-                          <p className="text-[11px] text-slate-500">All partner and platform service dues are settled.</p>
+                          <p className="text-xs font-bold text-emerald-600">Settled Directly with Partner</p>
+                          <p className="text-[11px] text-slate-500">100% of amount received by Pro. ₹0 platform commission deducted.</p>
                         </div>
                       </div>
                       <span className="text-sm font-black font-mono text-emerald-600">

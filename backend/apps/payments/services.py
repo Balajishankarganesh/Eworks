@@ -18,25 +18,28 @@ from apps.notifications.broadcast import broadcast_booking_update, broadcast_use
 
 logger = logging.getLogger(__name__)
 
-COMMISSION_PCT = Decimal(str(getattr(settings, "PLATFORM_COMMISSION_PERCENTAGE", 15.0)))
-GST_PCT = Decimal(str(getattr(settings, "GST_PERCENTAGE", 18.0)))
-CONVENIENCE_FEE = Decimal("29.00")
+# 100% Free Platform Configuration:
+# - Zero platform commission for service partners (100% payout to partner)
+# - Zero convenience fees for customers
+# - Online payment gateway deferred to future roadmap; currently direct Cash/UPI settlement
+COMMISSION_PCT = Decimal(str(getattr(settings, "PLATFORM_COMMISSION_PERCENTAGE", 0.0)))
+GST_PCT = Decimal(str(getattr(settings, "GST_PERCENTAGE", 0.0)))
+CONVENIENCE_FEE = Decimal("0.00")
 
 
 def calculate_pricing_breakdown(quoted_price: Decimal | float) -> dict:
     """
     Computes pricing breakdown for a booking:
-    - Service Amount
-    - Platform Convenience Fee
-    - GST on Platform Fee
-    - Total Customer Payable
-    - Partner Net Earning (85%)
-    - Platform Gross Commission (15% + Convenience Fee)
+    - Service Amount (Direct to Partner)
+    - Platform Convenience Fee (₹0.00 - 100% Free for Customer)
+    - Platform Commission (0% - 100% Free for Partner)
+    - Total Customer Payable = Service Price
+    - Partner Net Earning = 100% of Service Price
     """
     svc_price = Decimal(str(quoted_price or 0)).quantize(Decimal("0.01"))
-    conv_fee = CONVENIENCE_FEE
-    gst_amount = (conv_fee * (GST_PCT / Decimal("100"))).quantize(Decimal("0.01"))
-    total_payable = (svc_price + conv_fee + gst_amount).quantize(Decimal("0.01"))
+    conv_fee = Decimal("0.00")
+    gst_amount = Decimal("0.00")
+    total_payable = svc_price
 
     platform_cut = (svc_price * (COMMISSION_PCT / Decimal("100"))).quantize(Decimal("0.01"))
     partner_payout = (svc_price - platform_cut).quantize(Decimal("0.01"))

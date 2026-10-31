@@ -106,7 +106,7 @@ export default function HomePage() {
             <div className="text-center max-w-4xl mx-auto space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold tracking-wide uppercase">
                 <Zap className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />
-                <span>RAPIDO-STYLE REAL-TIME HOME SERVICES</span>
+                <span>RAPIDO-STYLE REAL-TIME HOME SERVICES • 100% FREE FOR ALL</span>
               </div>
 
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight font-heading leading-[1.1]">
@@ -151,6 +151,10 @@ export default function HomePage() {
                   <span className="text-white font-medium">All Over Tamil Nadu (38 Districts)</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 font-semibold">100% Free • ₹0 Platform Fees</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-emerald-400" />
                   <span>100% Background-Verified</span>
                 </div>
@@ -160,7 +164,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-amber-400" />
-                  <span>Transparent Upfront Pricing</span>
+                  <span>0% Commission for Partners</span>
                 </div>
               </div>
             </div>
@@ -293,10 +297,10 @@ export default function HomePage() {
                   03
                 </div>
                 <h3 className="text-lg font-bold text-white font-heading mb-2">
-                  Secure OTP & Pay
+                  Direct Pay & ₹0 Platform Fee
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Share the start OTP with the pro upon arrival. Inspect completed work and pay securely via online or cash.
+                  Share the start OTP with the pro upon arrival. Inspect completed work and pay directly to the pro via Cash or UPI with zero platform cut.
                 </p>
               </div>
             </div>
@@ -308,13 +312,13 @@ export default function HomePage() {
           <div className="relative bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 sm:p-14 text-slate-950 overflow-hidden shadow-2xl shadow-orange-500/20">
             <div className="relative z-10 max-w-2xl space-y-4">
               <span className="text-xs font-black uppercase tracking-wider bg-slate-950/15 text-slate-950 px-3 py-1 rounded-full">
-                FOR SKILLED TRADESPERSONS & SERVICE PROS
+                100% FREE FOR SERVICE PROS • 0% COMMISSION
               </span>
               <h2 className="text-3xl sm:text-5xl font-black font-heading tracking-tight text-slate-950 leading-tight">
-                Grow Your Income with Eworks Direct Job Offers
+                Keep 100% of What You Earn with Eworks Direct Job Offers
               </h2>
               <p className="text-sm font-semibold text-slate-900 leading-relaxed">
-                Receive instant job alerts on your phone. Zero commissions during introductory period. Fast daily payouts and dedicated partner support.
+                Receive instant job alerts on your phone. Completely free platform — zero commissions and zero platform deductions. Customers pay you directly.
               </p>
               <div className="pt-2">
                 <Link
