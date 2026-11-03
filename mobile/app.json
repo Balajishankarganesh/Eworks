@@ -4,8 +4,12 @@
     "slug": "eworks",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "primaryColor": "#ea580c",
+    "description": "Hyperlocal Home Services Marketplace. Book trusted electricians, plumbers, AC repair, and home cleaning at 0% platform fee.",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0f172a"
     },
@@ -18,11 +22,28 @@
     },
     "android": {
       "package": "com.eworks.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }
-

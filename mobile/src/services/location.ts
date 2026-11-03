@@ -76,3 +76,4 @@ export async function getCurrentUserLocation(): Promise<UserLocation> {
     return DEFAULT_COORDINATES;
   }
 }
+

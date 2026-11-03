@@ -67,3 +67,4 @@ export function getNearbyPartners(userLat: number, userLng: number): NearbyPartn
     },
   ];
 }
+
