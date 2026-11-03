@@ -23,17 +23,32 @@ export async function updateApiBaseUrl(newBaseUrl: string) {
 
 export async function getApiBaseUrl(): Promise<string> {
   const custom = await AsyncStorage.getItem(API_URL_KEY);
-  return custom || ENV.DEFAULT_API_BASE_URL;
+  if (
+    custom &&
+    !custom.includes(".trycloudflare.com") &&
+    !custom.includes(".loca.lt") &&
+    !custom.includes(".lhr.life")
+  ) {
+    return custom;
+  }
+  return ENV.DEFAULT_API_BASE_URL;
 }
 
 // Request interceptor: attach JWT access token
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      // Ensure custom baseURL is applied if available
+      // Use active configured tunnel URL, discarding dead ephemeral tunnels
       const customUrl = await AsyncStorage.getItem(API_URL_KEY);
-      if (customUrl && config.baseURL !== customUrl) {
+      if (
+        customUrl &&
+        !customUrl.includes(".trycloudflare.com") &&
+        !customUrl.includes(".loca.lt") &&
+        !customUrl.includes(".lhr.life")
+      ) {
         config.baseURL = customUrl;
+      } else {
+        config.baseURL = ENV.DEFAULT_API_BASE_URL;
       }
 
       const token = await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
