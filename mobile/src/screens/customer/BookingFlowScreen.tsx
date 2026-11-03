@@ -17,10 +17,12 @@ export const BookingFlowScreen: React.FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
 }) => {
-  const { category } = route.params || {};
+  const { category, address: initialAddress, latitude, longitude } = route.params || {};
 
   const [problem, setProblem] = useState("");
-  const [address, setAddress] = useState("Flat 4B, Emerald Heights, Anna Nagar, Chennai - 600040");
+  const [address, setAddress] = useState(
+    initialAddress || "Flat 4B, Emerald Heights, Anna Nagar, Chennai - 600040"
+  );
   const [bookingType, setBookingType] = useState<"INSTANT" | "SCHEDULED">("INSTANT");
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,6 +43,8 @@ export const BookingFlowScreen: React.FC<{ route: any; navigation: any }> = ({
         category_name: category?.name,
         problem_description: problem.trim(),
         address_text: address.trim(),
+        latitude,
+        longitude,
         booking_type: bookingType,
       });
 

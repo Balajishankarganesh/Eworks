@@ -11,7 +11,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.eworks.app"
+      "bundleIdentifier": "com.eworks.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Eworks uses your location to spot nearby service partners and technicians."
+      }
     },
     "android": {
       "package": "com.eworks.app",

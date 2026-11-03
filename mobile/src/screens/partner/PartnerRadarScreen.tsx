@@ -1,29 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Switch,
   ActivityIndicator,
   Alert,
-  RefreshControl,
+  Dimensions,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Header } from "../../components/Header";
+import { RapidoMap } from "../../components/RapidoMap";
 import { partnerApi } from "../../api/partner";
 import { PartnerOffer, Booking } from "../../types";
 import { formatApiError } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
+import {
+  getCurrentUserLocation,
+  UserLocation,
+  DEFAULT_COORDINATES,
+} from "../../services/location";
+
+const { width } = Dimensions.get("window");
 
 export const PartnerRadarScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
+  const { user, switchRole } = useAuth();
+
+  const [partnerLocation, setPartnerLocation] = useState<UserLocation>(DEFAULT_COORDINATES);
   const [isOnline, setIsOnline] = useState(true);
   const [togglingOnline, setTogglingOnline] = useState(false);
   const [offers, setOffers] = useState<PartnerOffer[]>([]);
   const [activeJobs, setActiveJobs] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [respondingId, setRespondingId] = useState<string | null>(null);
+
+  // Spot partner location
+  const locatePartner = useCallback(async () => {
+    try {
+      const loc = await getCurrentUserLocation();
+      setPartnerLocation(loc);
+    } catch (e) {
+      console.warn("Partner location error:", e);
+    }
+  }, []);
 
   const loadPartnerData = async () => {
     try {
@@ -40,14 +61,14 @@ export const PartnerRadarScreen: React.FC<{ navigation: any }> = ({ navigation }
         )
       );
     } catch (e) {
-      console.error(e);
+      console.error("Partner data load error:", e);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
   useEffect(() => {
+    locatePartner();
     loadPartnerData();
     const interval = setInterval(loadPartnerData, 8000);
     return () => clearInterval(interval);
@@ -59,10 +80,10 @@ export const PartnerRadarScreen: React.FC<{ navigation: any }> = ({ navigation }
       const res = await partnerApi.toggleOnline(val);
       setIsOnline(res.is_online);
       Alert.alert(
-        res.is_online ? "You are Online! 🟢" : "You are Offline ⚪",
+        res.is_online ? "Radar Live! 🟢" : "Radar Offline ⚪",
         res.is_online
-          ? "You will now receive instant audio pings for nearby customer requests."
-          : "You will not receive any new service requests until you go online."
+          ? "You are now online and ready to receive customer booking requests."
+          : "You are offline. Toggle back on when you are ready to work."
       );
     } catch (err: any) {
       Alert.alert("Status Error", formatApiError(err));
@@ -77,7 +98,10 @@ export const PartnerRadarScreen: React.FC<{ navigation: any }> = ({ navigation }
       setRespondingId(offerId);
       await partnerApi.respondToOffer(offerId, action);
       if (action === "ACCEPT") {
-        Alert.alert("Job Accepted! 🎉", "Navigate to customer address and ask for their 4-digit Job Start OTP.");
+        Alert.alert(
+          "Job Accepted! 🎉",
+          "Head to the customer location. Collect the 4-digit Job Start OTP upon arrival."
+        );
       }
       loadPartnerData();
     } catch (err: any) {
@@ -87,141 +111,194 @@ export const PartnerRadarScreen: React.FC<{ navigation: any }> = ({ navigation }
     }
   };
 
+  const currentOffer = offers.length > 0 ? offers[0] : null;
+  const currentActiveJob = activeJobs.length > 0 ? activeJobs[0] : null;
+
   return (
     <View style={styles.container}>
-      <Header title="Partner Radar" subtitle="Live dispatch & job stream" />
+      {/* ── 1. Rapido Captain Full-Screen Map ────────────────────────── */}
+      <RapidoMap
+        latitude={partnerLocation.latitude}
+        longitude={partnerLocation.longitude}
+        showRadar={isOnline}
+        radarRadiusMeters={3000}
+        interactive={false}
+      />
 
-      {/* Online / Offline Switch Bar */}
-      <View style={[styles.statusBar, isOnline ? styles.statusOnline : styles.statusOffline]}>
-        <View style={styles.statusLeft}>
-          <View style={[styles.statusDot, isOnline ? styles.dotGreen : styles.dotGray]} />
-          <View>
-            <Text style={styles.statusTitle}>
-              {isOnline ? "RADAR BROADCAST ACTIVE" : "RADAR OFFLINE"}
-            </Text>
-            <Text style={styles.statusSub}>
-              {isOnline
-                ? "GPS active • 5km matching radius"
-                : "Turn on to receive instant service offers"}
-            </Text>
+      {/* ── 2. Top Floating Online/Offline Switcher (Rapido Captain Style) */}
+      <View style={[styles.topFloatingCard, { paddingTop: Math.max(insets.top, 12) }]}>
+        <View style={styles.topRow}>
+          <View style={styles.brandBadge}>
+            <Ionicons name="radio" size={16} color="#0f172a" />
+            <Text style={styles.brandTitle}>Captain Radar</Text>
           </View>
+
+          {/* Quick role switcher */}
+          <TouchableOpacity
+            style={styles.roleSwitchBtn}
+            activeOpacity={0.8}
+            onPress={() => switchRole("CUSTOMER")}
+          >
+            <Ionicons name="swap-horizontal" size={16} color="#ffffff" />
+            <Text style={styles.roleSwitchText}>Switch</Text>
+          </TouchableOpacity>
         </View>
 
-        {togglingOnline ? (
-          <ActivityIndicator size="small" color="#ea580c" />
-        ) : (
-          <Switch
-            value={isOnline}
-            onValueChange={handleToggleOnline}
-            trackColor={{ false: "#cbd5e1", true: "#fdba74" }}
-            thumbColor={isOnline ? "#ea580c" : "#f1f5f9"}
-          />
-        )}
+        {/* Online / Offline Toggle Card */}
+        <View style={[styles.statusCard, isOnline ? styles.statusCardOnline : styles.statusCardOffline]}>
+          <View style={styles.statusInfo}>
+            <View style={[styles.pulseDot, isOnline ? styles.dotGreen : styles.dotGray]} />
+            <View>
+              <Text style={styles.statusStateText}>
+                {isOnline ? "YOU ARE ONLINE" : "YOU ARE OFFLINE"}
+              </Text>
+              <Text style={styles.statusSubText}>
+                {isOnline
+                  ? "Broadcasting to customers within 5 km"
+                  : "Turn on to receive instant job alerts"}
+              </Text>
+            </View>
+          </View>
+
+          {togglingOnline ? (
+            <ActivityIndicator size="small" color="#ea580c" />
+          ) : (
+            <Switch
+              value={isOnline}
+              onValueChange={handleToggleOnline}
+              trackColor={{ false: "#334155", true: "#22c55e" }}
+              thumbColor={isOnline ? "#ffffff" : "#94a3b8"}
+            />
+          )}
+        </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadPartnerData(); }} />
-        }
-      >
-        {/* Active Jobs Shortcut if any */}
-        {activeJobs.length > 0 && (
+      {/* ── 3. Quick Metrics Floating Strip ───────────────────────────── */}
+      <View style={[styles.metricsStrip, { top: Math.max(insets.top, 12) + 125 }]}>
+        <View style={styles.metricItem}>
+          <Text style={styles.metricLabel}>TODAY</Text>
+          <Text style={styles.metricValue}>₹1,450</Text>
+        </View>
+        <View style={styles.metricDivider} />
+        <View style={styles.metricItem}>
+          <Text style={styles.metricLabel}>JOBS</Text>
+          <Text style={styles.metricValue}>4 Done</Text>
+        </View>
+        <View style={styles.metricDivider} />
+        <View style={styles.metricItem}>
+          <Text style={styles.metricLabel}>COMMISSION</Text>
+          <Text style={[styles.metricValue, { color: "#22c55e" }]}>₹0 (0%)</Text>
+        </View>
+      </View>
+
+      {/* ── 4. Bottom Incoming Job Card / Active Job Card (Rapido Style) ─ */}
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        {/* Active Job Floating Alert */}
+        {currentActiveJob && (
           <TouchableOpacity
             style={styles.activeJobBanner}
-            onPress={() => navigation.navigate("ActiveJobTab")}
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate("ActiveJob", { booking: currentActiveJob })}
           >
-            <View style={styles.activeJobLeft}>
-              <View style={styles.activeJobPulse} />
-              <View>
-                <Text style={styles.activeJobTitle}>
-                  {activeJobs.length} Active Job in Progress
-                </Text>
-                <Text style={styles.activeJobSub}>
-                  {activeJobs[0].category_name || "Service"} • Tap to view directions & start OTP
-                </Text>
-              </View>
+            <View style={styles.activeJobIconWrap}>
+              <Ionicons name="navigate" size={20} color="#ffffff" />
             </View>
-            <Ionicons name="arrow-forward" size={18} color="#c2410c" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.activeJobTitle}>
+                Active Job: {currentActiveJob.category?.name || "Service In Progress"}
+              </Text>
+              <Text style={styles.activeJobAddress} numberOfLines={1}>
+                {currentActiveJob.address_text || "Customer Address"}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#f97316" />
           </TouchableOpacity>
         )}
 
-        {/* Radar Offers Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Incoming Service Requests</Text>
-          <Text style={styles.sectionSub}>Accept before the offer expires</Text>
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#ea580c" style={{ marginTop: 30 }} />
-        ) : !isOnline ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="cloud-offline-outline" size={48} color="#94a3b8" />
-            <Text style={styles.emptyTitle}>You are currently Offline</Text>
-            <Text style={styles.emptySub}>
-              Switch the toggle above to Go Online and receive live job pings.
-            </Text>
-          </View>
-        ) : offers.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="radio-outline" size={48} color="#ea580c" />
-            <Text style={styles.emptyTitle}>Scanning Anna Nagar Radar...</Text>
-            <Text style={styles.emptySub}>
-              New bookings will appear here instantly with sound alert.
-            </Text>
-          </View>
-        ) : (
-          offers.map((offer) => (
-            <View key={offer.id} style={styles.offerCard}>
-              <View style={styles.offerHeader}>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryBadgeText}>{offer.category_name}</Text>
-                </View>
-                <View style={styles.payoutBadge}>
-                  <Text style={styles.payoutText}>₹{offer.partner_payout}</Text>
-                  <Text style={styles.payoutSub}>100% Net</Text>
-                </View>
+        {/* Incoming Offer Card (Rapido Captain Style) */}
+        {currentOffer ? (
+          <View style={styles.offerCard}>
+            <View style={styles.offerHeader}>
+              <View style={styles.offerBadge}>
+                <Ionicons name="notifications" size={14} color="#ea580c" />
+                <Text style={styles.offerBadgeText}>NEW JOB REQUEST</Text>
               </View>
+              <Text style={styles.offerExpiresText}>Expiring soon</Text>
+            </View>
 
-              <Text style={styles.offerProblem}>{offer.problem_description}</Text>
-
-              <View style={styles.offerAddressRow}>
-                <Ionicons name="location" size={16} color="#ea580c" />
-                <Text style={styles.offerAddress} numberOfLines={2}>
-                  {offer.customer_address}
+            <View style={styles.offerBody}>
+              <View>
+                <Text style={styles.offerCategory}>
+                  {currentOffer.category_name || "Home Service"}
+                </Text>
+                <Text style={styles.offerProblem} numberOfLines={2}>
+                  {currentOffer.problem_description || "General maintenance"}
+                </Text>
+                <Text style={styles.offerAddress} numberOfLines={1}>
+                  📍 {currentOffer.customer_address || "Near your location"}
                 </Text>
               </View>
 
-              {offer.distance_km && (
-                <Text style={styles.distanceText}>📍 Approx. {offer.distance_km} km away</Text>
-              )}
-
-              {/* Action Buttons */}
-              <View style={styles.offerActionsRow}>
-                <TouchableOpacity
-                  style={styles.rejectBtn}
-                  onPress={() => handleRespondOffer(offer.id, "REJECT")}
-                  disabled={respondingId === offer.id}
-                >
-                  <Text style={styles.rejectBtnText}>Pass</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.acceptBtn}
-                  onPress={() => handleRespondOffer(offer.id, "ACCEPT")}
-                  disabled={respondingId === offer.id}
-                >
-                  {respondingId === offer.id ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <Text style={styles.acceptBtnText}>Accept Job (₹{offer.partner_payout})</Text>
-                  )}
-                </TouchableOpacity>
+              <View style={styles.offerPayoutBox}>
+                <Text style={styles.offerPayoutLabel}>YOU EARN</Text>
+                <Text style={styles.offerPayoutAmount}>
+                  ₹{currentOffer.partner_payout || currentOffer.quoted_price || 299}
+                </Text>
+                <Text style={styles.offerPayoutSub}>100% Direct Cash/UPI</Text>
               </View>
             </View>
-          ))
+
+            {/* Action Buttons */}
+            <View style={styles.offerActionRow}>
+              <TouchableOpacity
+                style={styles.rejectButton}
+                activeOpacity={0.8}
+                onPress={() => handleRespondOffer(currentOffer.id, "REJECT")}
+                disabled={respondingId !== null}
+              >
+                <Text style={styles.rejectButtonText}>Pass</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.acceptButton}
+                activeOpacity={0.8}
+                onPress={() => handleRespondOffer(currentOffer.id, "ACCEPT")}
+                disabled={respondingId !== null}
+              >
+                {respondingId === currentOffer.id ? (
+                  <ActivityIndicator size="small" color="#0f172a" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={18} color="#0f172a" />
+                    <Text style={styles.acceptButtonText}>ACCEPT JOB</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          /* Idle scanning card when no pending offers */
+          <View style={styles.idleCard}>
+            <View style={styles.idleIconBox}>
+              <Ionicons
+                name={isOnline ? "radio" : "cloud-offline"}
+                size={22}
+                color={isOnline ? "#22c55e" : "#94a3b8"}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.idleTitle}>
+                {isOnline ? "Scanning for nearby customers..." : "Radar is offline"}
+              </Text>
+              <Text style={styles.idleSubtitle}>
+                {isOnline
+                  ? "Incoming jobs will pop up with sound and 30s timer"
+                  : "Turn switch above to start receiving jobs"}
+              </Text>
+            </View>
+          </View>
         )}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -229,135 +306,199 @@ export const PartnerRadarScreen: React.FC<{ navigation: any }> = ({ navigation }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#0f172a",
   },
-  statusBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+
+  // ── Top Floating Card ───────────────────────────────────────────────────
+  topFloatingCard: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 14,
+    backgroundColor: "rgba(15, 23, 42, 0.92)",
     borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.08)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
+    zIndex: 20,
   },
-  statusOnline: {
-    backgroundColor: "#f0fdf4",
-    borderBottomColor: "#bbf7d0",
-  },
-  statusOffline: {
-    backgroundColor: "#f1f5f9",
-    borderBottomColor: "#e2e8f0",
-  },
-  statusLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  dotGreen: {
-    backgroundColor: "#16a34a",
-  },
-  dotGray: {
-    backgroundColor: "#94a3b8",
-  },
-  statusTitle: {
-    fontSize: 12,
-    fontWeight: "900",
-    color: "#0f172a",
-    letterSpacing: 0.5,
-  },
-  statusSub: {
-    fontSize: 11,
-    color: "#64748b",
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  activeJobBanner: {
+  topRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#fff7ed",
-    borderWidth: 1,
-    borderColor: "#fed7aa",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 20,
+    marginBottom: 10,
   },
-  activeJobLeft: {
+  brandBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f97316",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    gap: 6,
+  },
+  brandTitle: {
+    color: "#0f172a",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  roleSwitchBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1e293b",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    gap: 6,
+  },
+  roleSwitchText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  statusCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  statusCardOnline: {
+    backgroundColor: "rgba(34, 197, 94, 0.12)",
+    borderColor: "rgba(34, 197, 94, 0.35)",
+  },
+  statusCardOffline: {
+    backgroundColor: "rgba(30, 41, 59, 0.8)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  statusInfo: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     flex: 1,
   },
-  activeJobPulse: {
+  pulseDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#ea580c",
   },
-  activeJobTitle: {
+  dotGreen: {
+    backgroundColor: "#22c55e",
+  },
+  dotGray: {
+    backgroundColor: "#64748b",
+  },
+  statusStateText: {
+    color: "#f8fafc",
     fontSize: 13,
     fontWeight: "800",
-    color: "#9a3412",
   },
-  activeJobSub: {
+  statusSubText: {
+    color: "#94a3b8",
     fontSize: 11,
-    color: "#c2410c",
-    marginTop: 2,
+    fontWeight: "500",
   },
-  sectionHeader: {
-    marginBottom: 14,
+
+  // ── Metrics Strip ───────────────────────────────────────────────────────
+  metricsStrip: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.9)",
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    zIndex: 15,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0f172a",
+  metricItem: {
+    flex: 1,
+    alignItems: "center",
   },
-  sectionSub: {
-    fontSize: 12,
+  metricLabel: {
     color: "#64748b",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  metricValue: {
+    color: "#f8fafc",
+    fontSize: 14,
+    fontWeight: "800",
     marginTop: 2,
   },
-  emptyBox: {
+  metricDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+  },
+
+  // ── Bottom Sheet / Cards ────────────────────────────────────────────────
+  bottomContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    gap: 10,
+    zIndex: 20,
+  },
+  activeJobBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ea580c",
+    borderRadius: 16,
+    padding: 12,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  activeJobIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#0f172a",
     alignItems: "center",
     justifyContent: "center",
-    padding: 40,
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    marginTop: 10,
   },
-  emptyTitle: {
-    fontSize: 16,
+  activeJobTitle: {
+    color: "#ffffff",
+    fontSize: 13,
     fontWeight: "800",
-    color: "#334155",
-    marginTop: 12,
   },
-  emptySub: {
-    fontSize: 12,
-    color: "#64748b",
-    textAlign: "center",
-    marginTop: 4,
-    lineHeight: 18,
+  activeJobAddress: {
+    color: "#0f172a",
+    fontSize: 11,
+    fontWeight: "700",
   },
+
   offerCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 18,
+    backgroundColor: "#1e293b",
+    borderRadius: 20,
     padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1.5,
+    borderColor: "#ea580c",
+    shadowColor: "#ea580c",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   offerHeader: {
     flexDirection: "row",
@@ -365,81 +506,134 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  categoryBadge: {
-    backgroundColor: "#f1f5f9",
+  offerBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(234, 88, 12, 0.15)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    gap: 4,
   },
-  categoryBadgeText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#334155",
-  },
-  payoutBadge: {
-    alignItems: "flex-end",
-  },
-  payoutText: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#16a34a",
-  },
-  payoutSub: {
+  offerBadgeText: {
+    color: "#ea580c",
     fontSize: 10,
+    fontWeight: "800",
+  },
+  offerExpiresText: {
+    color: "#eab308",
+    fontSize: 11,
     fontWeight: "700",
-    color: "#15803d",
+  },
+  offerBody: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+    gap: 12,
+  },
+  offerCategory: {
+    color: "#f8fafc",
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 2,
   },
   offerProblem: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1e293b",
-    lineHeight: 20,
-    marginBottom: 10,
-  },
-  offerAddressRow: {
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "flex-start",
-    marginBottom: 6,
+    color: "#94a3b8",
+    fontSize: 12,
+    fontWeight: "500",
+    maxWidth: width * 0.52,
+    marginBottom: 4,
   },
   offerAddress: {
-    flex: 1,
-    fontSize: 12,
-    color: "#475569",
-    lineHeight: 16,
-  },
-  distanceText: {
+    color: "#cbd5e1",
     fontSize: 11,
-    color: "#64748b",
     fontWeight: "600",
-    marginBottom: 14,
+    maxWidth: width * 0.52,
   },
-  offerActionsRow: {
+  offerPayoutBox: {
+    backgroundColor: "rgba(34, 197, 94, 0.12)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(34, 197, 94, 0.3)",
+    alignItems: "center",
+  },
+  offerPayoutLabel: {
+    color: "#22c55e",
+    fontSize: 9,
+    fontWeight: "800",
+  },
+  offerPayoutAmount: {
+    color: "#22c55e",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  offerPayoutSub: {
+    color: "#94a3b8",
+    fontSize: 8,
+    fontWeight: "600",
+  },
+  offerActionRow: {
     flexDirection: "row",
     gap: 10,
   },
-  rejectBtn: {
+  rejectButton: {
     flex: 1,
-    backgroundColor: "#f1f5f9",
-    paddingVertical: 12,
+    backgroundColor: "#334155",
     borderRadius: 12,
+    paddingVertical: 12,
     alignItems: "center",
+    justifyContent: "center",
   },
-  rejectBtnText: {
+  rejectButtonText: {
+    color: "#94a3b8",
     fontSize: 13,
     fontWeight: "700",
-    color: "#64748b",
   },
-  acceptBtn: {
+  acceptButton: {
     flex: 2,
-    backgroundColor: "#16a34a",
-    paddingVertical: 12,
+    flexDirection: "row",
+    backgroundColor: "#22c55e",
     borderRadius: 12,
+    paddingVertical: 12,
     alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
-  acceptBtnText: {
+  acceptButtonText: {
+    color: "#0f172a",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  idleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0f172a",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    gap: 12,
+  },
+  idleIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  idleTitle: {
+    color: "#f8fafc",
     fontSize: 13,
-    fontWeight: "800",
-    color: "#ffffff",
+    fontWeight: "700",
+  },
+  idleSubtitle: {
+    color: "#64748b",
+    fontSize: 11,
+    fontWeight: "500",
   },
 });
