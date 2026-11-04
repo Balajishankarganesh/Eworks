@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../api/auth";
-import { DEMO_USERS } from "../../config/env";
+import { ENV, DEMO_USERS } from "../../config/env";
 import { formatApiError } from "../../api/client";
 
 export const LoginScreen: React.FC = () => {
@@ -38,6 +38,40 @@ export const LoginScreen: React.FC = () => {
   const [showServerModal, setShowServerModal] = useState(false);
   const [serverUrlInput, setServerUrlInput] = useState(apiUrl);
 
+  // Demo / Offline Bypass Handler
+  const handleInstantDemoLogin = async (selectedRole: "CUSTOMER" | "PARTNER") => {
+    const mockUser = selectedRole === "CUSTOMER"
+      ? {
+          id: "demo-cust-1",
+          phone: DEMO_USERS.customer.phone,
+          email: DEMO_USERS.customer.email,
+          first_name: "Priya",
+          last_name: "Sharma",
+          full_name: DEMO_USERS.customer.name,
+          role: "CUSTOMER" as const,
+          is_verified: true,
+          is_phone_verified: true,
+        }
+      : {
+          id: "demo-part-1",
+          phone: DEMO_USERS.partner.phone,
+          email: DEMO_USERS.partner.email,
+          first_name: "Balaji",
+          last_name: "Ganesh",
+          full_name: DEMO_USERS.partner.name,
+          role: "PARTNER" as const,
+          is_verified: true,
+          is_phone_verified: true,
+        };
+
+    const mockTokens = {
+      access: "demo_offline_access_token",
+      refresh: "demo_offline_refresh_token",
+    };
+
+    await login(mockUser, mockTokens);
+  };
+
   // Handle Send OTP
   const handleSendOtp = async (overridePhone?: string) => {
     const targetPhone = overridePhone || phone;
@@ -55,7 +89,26 @@ export const LoginScreen: React.FC = () => {
       }
       Alert.alert("Code Sent", res.message || "OTP code sent via SMS & WhatsApp.");
     } catch (err: any) {
-      Alert.alert("Error", formatApiError(err));
+      const errMsg = formatApiError(err);
+      if (errMsg.includes("Cannot connect to Eworks backend server") || errMsg.includes("Network Error")) {
+        Alert.alert(
+          "Backend Not Connected Yet",
+          "Your phone cannot reach the backend server right now.\n\nWould you like to explore the full app in Demo Mode now?",
+          [
+            { text: "Check Server URL", onPress: () => setShowServerModal(true) },
+            {
+              text: "Explore Demo Mode",
+              style: "default",
+              onPress: () =>
+                handleInstantDemoLogin(
+                  targetPhone === DEMO_USERS.partner.phone ? "PARTNER" : "CUSTOMER"
+                ),
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Error", errMsg);
+      }
     } finally {
       setSendingOtp(false);
     }
@@ -351,6 +404,31 @@ export const LoginScreen: React.FC = () => {
           </View>
         </View>
 
+        {/* INSTANT DEMO MODE (OFFLINE / PREVIEW) */}
+        <View style={styles.demoModeCard}>
+          <Text style={styles.demoModeTitle}>🚀 Explore App Without Waiting for Server</Text>
+          <Text style={styles.demoModeDesc}>
+            Explore the Rapido map UI, live GPS spotting & partner radar screens instantly:
+          </Text>
+          <View style={styles.demoModeButtonsRow}>
+            <TouchableOpacity
+              style={styles.demoModeCustomerBtn}
+              onPress={() => handleInstantDemoLogin("CUSTOMER")}
+            >
+              <Ionicons name="map-outline" size={16} color="#ffffff" />
+              <Text style={styles.demoModeBtnText}>Customer Map</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.demoModePartnerBtn}
+              onPress={() => handleInstantDemoLogin("PARTNER")}
+            >
+              <Ionicons name="radio-outline" size={16} color="#ffffff" />
+              <Text style={styles.demoModeBtnText}>Partner Radar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Server Base URL Setting */}
         <View style={styles.serverSettingsCard}>
           <TouchableOpacity
@@ -371,8 +449,24 @@ export const LoginScreen: React.FC = () => {
           {showServerModal && (
             <View style={styles.serverInputBox}>
               <Text style={styles.serverInputHint}>
-                Change backend host (10.0.2.2 for Android emulator, LAN IP for phone):
+                Active Cloudflare Tunnel & Local LAN Presets:
               </Text>
+              
+              <View style={styles.presetRow}>
+                <TouchableOpacity
+                  style={styles.presetBadge}
+                  onPress={() => setServerUrlInput(ENV.DEFAULT_API_BASE_URL)}
+                >
+                  <Text style={styles.presetBadgeText}>⚡ Cloudflare Tunnel (Live)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.presetBadge}
+                  onPress={() => setServerUrlInput(ENV.LAN_API_BASE_URL)}
+                >
+                  <Text style={styles.presetBadgeText}>📶 Local Wi-Fi (LAN)</Text>
+                </TouchableOpacity>
+              </View>
+
               <TextInput
                 style={styles.serverInput}
                 value={serverUrlInput}
@@ -683,6 +777,71 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#475569",
     fontWeight: "600",
+  },
+  demoModeCard: {
+    marginTop: 18,
+    backgroundColor: "#ecfdf5",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+  },
+  demoModeTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#065f46",
+    marginBottom: 4,
+  },
+  demoModeDesc: {
+    fontSize: 11,
+    color: "#047857",
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  demoModeButtonsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  demoModeCustomerBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#059669",
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  demoModePartnerBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#ea580c",
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  demoModeBtnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  presetRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 10,
+  },
+  presetBadge: {
+    backgroundColor: "#e2e8f0",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  presetBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#334155",
   },
   serverInputBox: {
     marginTop: 12,

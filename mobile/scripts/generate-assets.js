@@ -163,3 +163,4 @@ const faviconBuffer = createPNG(48, 48, (x, y, w, h) => {
 fs.writeFileSync(path.join(assetsDir, 'favicon.png'), faviconBuffer);
 
 console.log('All branding assets successfully created in mobile/assets/!');
+
